@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random tanlov</title>
+<style>
+  :root{
+    --bg:#f3f5fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+    --primary:#4f46e5; --primary-d:#4338ca; --ok:#16a34a; --bad:#e11d48; --line:#e5e7eb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);padding:16px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{text-align:center;margin:8px 0 4px;font-size:28px}
+  .sub{text-align:center;color:var(--muted);margin-bottom:20px}
+  .card{background:var(--card);border-radius:16px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:16px}
+  .card h2{margin:0 0 12px;font-size:18px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input[type=text],input[type=number]{padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:15px;outline:none}
+  input[type=text]{flex:1;min-width:180px}
+  input[type=number]{width:80px}
+  input:focus{border-color:var(--primary)}
+  button{border:0;border-radius:10px;padding:10px 16px;font-size:15px;cursor:pointer;font-weight:600;transition:.15s}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-d)}
+  .btn-light{background:#eef0f7;color:var(--text)}
+  .btn-light:hover{background:#e1e4f0}
+  .btn-big{font-size:18px;padding:14px 28px;width:100%}
+  .btn-sad{background:#fff1f2;color:var(--bad);border:2px solid #fecdd3;font-size:17px;padding:14px 24px}
+  .btn-sad:hover{background:#ffe4e6}
+  .students{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:12px}
+  .stu{display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:#fafbff;transition:.15s;user-select:none}
+  .stu.on{border-color:#c7d2fe;background:#eef2ff}
+  .stu.off{opacity:.55;background:#f3f4f6}
+  .stu label{display:flex;align-items:center;gap:10px;flex:1;cursor:pointer;min-width:0}
+  .stu input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);flex-shrink:0}
+  .stu .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stu.off .nm{text-decoration:line-through}
+  .stu .del{background:transparent;color:#9ca3af;padding:4px 8px;font-size:16px}
+  .stu .del:hover{color:var(--bad)}
+  .stu.flash{border-color:var(--primary);background:#c7d2fe;transform:scale(1.03)}
+  .stat{margin-top:12px;color:var(--muted);font-size:14px}
+  .stat b{color:var(--text)}
+  .warn{color:var(--bad);font-weight:600}
+  .res-title{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+  .item{padding:12px 14px;border-radius:12px;font-weight:600;display:flex;gap:10px;align-items:center;opacity:0;transform:translateY(10px);animation:in .4s forwards}
+  .item .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:13px;color:#fff;flex-shrink:0}
+  .win{background:#f0fdf4;border:2px solid #bbf7d0}
+  .win .n{background:var(--ok)}
+  .lose{background:#fff1f2;border:2px solid #fecdd3;color:#9f1239}
+  .lose .n{background:var(--bad)}
+  @keyframes in{to{opacity:1;transform:none}}
+  .hamdard{text-align:center;margin-top:16px}
+  .msg{margin-top:14px;padding:14px;border-radius:12px;background:#fffbeb;border:2px solid #fde68a;color:#92400e;font-weight:600;display:none}
+  .heart{position:fixed;bottom:-30px;font-size:28px;pointer-events:none;animation:up 3s ease-in forwards;z-index:50}
+  @keyframes up{to{transform:translateY(-105vh) rotate(25deg);opacity:0}}
+  .hidden{display:none}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .actions button{flex:1;min-width:140px}
+
+  .stage{background:linear-gradient(135deg,#1e1b4b,#4338ca);color:#fff;border-radius:16px;padding:22px 16px;text-align:center;margin-top:14px}
+  .stage .prog{font-size:14px;opacity:.8;margin-bottom:8px}
+  .stage .big{font-size:clamp(24px,6vw,44px);font-weight:800;min-height:56px;word-break:break-word}
+  .stage .q{font-size:20px;min-height:32px;margin-top:6px;font-weight:700}
+  .stage .q.pulse{animation:pl .55s infinite alternate}
+  @keyframes pl{from{transform:scale(1);opacity:.6}to{transform:scale(1.25);opacity:1}}
+  .stage.st-win{background:linear-gradient(135deg,#065f46,#16a34a)}
+  .stage.st-lose{background:linear-gradient(135deg,#881337,#e11d48)}
+  .stage.pop .big{animation:pop .5s}
+  @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+  .stu.rv-win{border-color:#86efac;background:#dcfce7;opacity:1}
+  .stu.rv-lose{border-color:#fda4af;background:#ffe4e6;opacity:1}
+  .stu.rv-win .nm::after{content:" ✅"} .stu.rv-lose .nm::after{content:" ❌"}
+  .stu.rv-lose .nm{text-decoration:none}
+  body.busy .students{pointer-events:none}
+  .opts{display:flex;gap:14px;align-items:center;margin:0 0 12px;flex-wrap:wrap;font-size:14px}
+  .mute{position:fixed;top:10px;right:10px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);border-radius:50%;width:42px;height:42px;padding:0;font-size:20px;z-index:60}
+</style>
+</head>
+<body>
+<button class="mute" id="mute" title="Ovoz">🔊</button>
+<div class="wrap">
+  <h1>🎲 Random tanlov</h1>
+  <div class="sub">Kelganlarni belgilang, so'ng tasodifiy tanlang</div>
+
+  <!-- 1. Ro'yxat va davomat -->
+  <div class="card">
+    <h2>1. Davomat va o'quvchilar</h2>
+    <div class="row">
+      <input type="text" id="newName" placeholder="Yangi o'quvchi ismi (masalan: Aliyev Vali)">
+      <button class="btn-primary" id="addBtn">+ Qo'shish</button>
+    </div>
+    <div class="actions">
+      <button class="btn-light" id="allOn">✅ Hammasi keldi</button>
+      <button class="btn-light" id="allOff">⛔ Hammasi kelmadi</button>
+    </div>
+    <div class="students" id="students"></div>
+    <div class="stat" id="stat"></div>
+  </div>
+
+  <!-- 2. Random -->
+  <div class="card">
+    <h2>2. Random tizimi</h2>
+    <div class="row" style="margin-bottom:12px">
+      <span>Nechta o'quvchi tanlansin:</span>
+      <input type="number" id="count" min="1" value="12">
+    </div>
+    <div class="opts"><label><input type="checkbox" id="fast"> ⚡ Tezkor rejim</label></div>
+    <button class="btn-primary btn-big" id="go">🎲 Tanlashni boshlash</button>
+    <div class="stage hidden" id="stage">
+      <div class="prog" id="prog"></div>
+      <div class="big" id="big"></div>
+      <div class="q" id="q"></div>
+      <button class="btn-light" id="skipBtn" style="margin-top:12px">⏭ Tezlashtirish</button>
+    </div>
+    <div id="warn" class="warn" style="margin-top:10px"></div>
+  </div>
+
+  <!-- Natija -->
+  <div class="card hidden" id="resCard">
+    <h2 class="res-title">🏆 Tanlanganlar (<span id="winCnt">0</span>)</h2>
+    <div class="list" id="winList"></div>
+
+    <div id="loseBox" class="hidden">
+      <h2 class="res-title" style="margin-top:22px">😔 Tanlanmaganlar (<span id="loseCnt">0</span>)</h2>
+      <div class="list" id="loseList"></div>
+      <div class="hamdard">
+        <button class="btn-sad" id="sad">💔 Hamdardlik bildirish</button>
+        <div class="msg" id="msg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = 'random_tanlov_v1';
+const DEFAULT = [
+  "Erkebaev Bag'laan","Urisbayev Beimbet","Kanatov M","Musurmanov O'lmesbek",
+  "Tulepov Azamat","Muxtarov Nurislam","Abukairov Mirambek","Turdaliev Erasil",
+  "Sulimanov J","Sulimanov B","Nadirov Ernar","Ermekbaev Sayan",
+  "Talipov Meyrambek","Nuraliyev Rinat","Pernekeulov Aidos"
+];
+
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)); } catch(e){}
+if (!state || !Array.isArray(state.students)) {
+  state = { students: DEFAULT.map(n => ({name:n, present:true})), count: 12 };
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+
+const $ = id => document.getElementById(id);
+const studentsEl = $('students');
+let busy = false;
+let lastLosers = [];
+
+function render(){
+  studentsEl.innerHTML = '';
+  state.students.forEach((s,i) => {
+    const d = document.createElement('div');
+    d.className = 'stu ' + (s.present ? 'on' : 'off');
+    d.dataset.i = i;
+    d.innerHTML = `<label><input type="checkbox" ${s.present?'checked':''}><span class="nm"></span></label><button class="del" title="O'chirish">✕</button>`;
+    d.querySelector('.nm').textContent = s.name;
+    d.querySelector('input').onchange = e => { s.present = e.target.checked; save(); render(); };
+    d.querySelector('.del').onclick = () => {
+      if (confirm(`"${s.name}" ro'yxatdan o'chirilsinmi?`)) { state.students.splice(i,1); save(); render(); }
+    };
+    studentsEl.appendChild(d);
+  });
+  const total = state.students.length;
+  const pres = state.students.filter(s=>s.present).length;
+  $('stat').innerHTML = `Jami: <b>${total}</b> · Kelgan: <b style="color:var(--ok)">${pres}</b> · Kelmagan: <b style="color:var(--bad)">${total-pres}</b>`;
+  $('count').value = state.count;
+}
+
+function addStudent(){
+  const v = $('newName').value.trim();
+  if (!v) return;
+  if (state.students.some(s => s.name.toLowerCase() === v.toLowerCase())) { alert('Bu o\'quvchi ro\'yxatda bor.'); return; }
+  state.students.push({name:v, present:true});
+  $('newName').value = '';
+  save(); render();
+}
+$('addBtn').onclick = addStudent;
+$('newName').addEventListener('keydown', e => { if(e.key==='Enter') addStudent(); });
+$('allOn').onclick = () => { state.students.forEach(s=>s.present=true); save(); render(); };
+$('allOff').onclick = () => { state.students.forEach(s=>s.present=false); save(); render(); };
+$('count').onchange = e => { state.count = Math.max(1, parseInt(e.target.value)||1); save(); render(); };
+
+// Xavfsiz tasodifiy son
+function rnd(n){
+  const a = new Uint32Array(1);
+  const max = Math.floor(4294967296 / n) * n;
+  do { crypto.getRandomValues(a); } while (a[0] >= max);
+  return a[0] % n;
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i=a.length-1;i>0;i--){ const j = rnd(i+1); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ===== OVOZ =====
+let ac, muted=false;
+function A(){ if(!ac) ac=new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==='suspended') ac.resume(); return ac; }
+function tone(f,d,type='sine',v=.15,t=0,slide){
+  if(muted) return;
+  try{
+    const c=A(),o=c.createOscillator(),g=c.createGain(),s=c.currentTime+t;
+    o.type=type; o.frequency.setValueAtTime(f,s);
+    if(slide) o.frequency.exponentialRampToValueAtTime(slide,s+d);
+    g.gain.setValueAtTime(v,s); g.gain.exponentialRampToValueAtTime(.001,s+d);
+    o.connect(g); g.connect(c.destination); o.start(s); o.stop(s+d+.02);
+  }catch(e){}
+}
+const sfx = {
+  tick:()=>tone(900,.05,'square',.05),
+  beat:()=>{ tone(70,.2,'sine',.6); tone(60,.2,'sine',.5,.22); },
+  win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.25,'triangle',.2,i*.09)),
+  lose:()=>{ tone(330,.45,'sawtooth',.1,0,160); tone(250,.6,'sawtooth',.1,.35,100); },
+  final:()=>[523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,.3,'triangle',.22,i*.12)),
+  sad:()=>[392,349,311,262].forEach((f,i)=>tone(f,.4,'sine',.2,i*.3))
+};
+$('mute').onclick = () => { muted=!muted; $('mute').textContent = muted?'🔇':'🔊'; };
+
+// ===== TANLASH (hayajonli rejim) =====
+let skip = false, speed = 1;
+const sl = ms => skip ? Promise.resolve() : sleep(ms*speed);
+$('skipBtn').onclick = () => { skip = true; };
+
+async function draw(){
+  if (busy) return;
+  A(); // brauzerda ovozni yoqish
+  $('warn').textContent = '';
+  const idxs = state.students.map((s,i)=>i).filter(i=>state.students[i].present);
+  if (idxs.length === 0){ $('warn').textContent = 'Hech kim belgilanmagan. Kelgan o\'quvchilarni belgilang.'; return; }
+  const k = Math.max(1, state.count);
+  let take = k;
+  if (idxs.length < k){
+    take = idxs.length;
+    $('warn').textContent = `Kelganlar soni (${idxs.length}) ${k} tadan kam — hammasi tanlandi.`;
+  }
+  busy = true; skip = false; speed = $('fast').checked ? .4 : 1;
+  $('go').disabled = true; document.body.classList.add('busy');
+  $('resCard').classList.add('hidden');
+  studentsEl.querySelectorAll('.stu').forEach(e=>e.classList.remove('rv-win','rv-lose','flash'));
+
+  const order = shuffle(idxs);
+  const winSet = new Set(order.slice(0, take));
+  const seq = shuffle(idxs);              // ko'rsatish tartibi
+  const tiles = [...studentsEl.children];
+  const stage = $('stage'), big = $('big'), q = $('q');
+  stage.classList.remove('hidden','st-win','st-lose','pop');
+  stage.scrollIntoView({behavior:'smooth', block:'center'});
+
+  for (let n=0; n<seq.length; n++){
+    const i = seq[n], el = tiles[i], name = state.students[i].name;
+    stage.classList.remove('st-win','st-lose','pop');
+    $('prog').textContent = `${n+1} / ${seq.length}`;
+    q.className = 'q'; q.textContent = '';
+
+    // 1) Ruletka: nur sekinlashib borib, bitta o'quvchida to'xtaydi
+    const pool = seq.slice(n);
+    const steps = skip ? 0 : 12;
+    let prev = null;
+    for (let s=0; s<steps && !skip; s++){
+      const j = (s === steps-1) ? i : pool[rnd(pool.length)];
+      if (prev) prev.classList.remove('flash');
+      prev = tiles[j]; prev.classList.add('flash');
+      big.textContent = state.students[j].name;
+      sfx.tick();
+      await sleep((60 + s*s*2.6) * speed);
+    }
+    if (prev) prev.classList.remove('flash');
+    big.textContent = name;
+
+    // 2) Hayajon: yurak urishi...
+    if (!skip){
+      q.textContent = 'Tanlandimi...? 😰'; q.classList.add('pulse');
+      for (let b=0; b<3 && !skip; b++){ sfx.beat(); await sl(650); }
+      await sl(300);
+    }
+
+    // 3) Natija
+    const w = winSet.has(i);
+    q.classList.remove('pulse');
+    q.textContent = w ? '✅ TANLANDI!' : '❌ Tanlanmadi';
+    stage.classList.add(w ? 'st-win' : 'st-lose', 'pop');
+    el.classList.add(w ? 'rv-win' : 'rv-lose');
+    if (!skip) (w ? sfx.win : sfx.lose)();
+    await sl(1300);
+  }
+
+  const win = order.slice(0, take).map(i => state.students[i].name);
+  const lose = order.slice(take).map(i => state.students[i].name);
+  lastLosers = lose;
+  stage.classList.add('hidden');
+  sfx.final();
+  show(win, lose);
+  busy = false; $('go').disabled = false; document.body.classList.remove('busy');
+}
+
+function fill(el, names, cls){
+  el.innerHTML = '';
+  names.forEach((n,i) => {
+    const d = document.createElement('div');
+    d.className = 'item ' + cls;
+    d.style.animationDelay = (i*120) + 'ms';
+    d.innerHTML = '<span class="n"></span><span class="t"></span>';
+    d.querySelector('.n').textContent = i+1;
+    d.querySelector('.t').textContent = n;
+    el.appendChild(d);
+  });
+}
+function show(win, lose){
+  $('winCnt').textContent = win.length;
+  fill($('winList'), win, 'win');
+  $('loseCnt').textContent = lose.length;
+  fill($('loseList'), lose, 'lose');
+  $('loseBox').classList.toggle('hidden', lose.length === 0);
+  $('msg').style.display = 'none';
+  $('resCard').classList.remove('hidden');
+  $('resCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+$('go').onclick = draw;
+
+// Hamdardlik
+const wishes = [
+  "Xafa bo'lmang! Keyingi safar omad sizniki 🍀",
+  "Hammasi joyida, bu faqat tasodif. Keyingi safar siz tanlanasiz 💪",
+  "Yengilganlarga hamdardlik bildiramiz. Boshingizni baland tuting! 🌟"
+];
+$('sad').onclick = () => {
+  if (!lastLosers.length) return;
+  sfx.sad();
+  const m = $('msg');
+  m.textContent = `💛 ${lastLosers.join(', ')} — ${wishes[rnd(wishes.length)]}`;
+  m.style.display = 'block';
+  const emo = ['💔','💛','🫂','😢','🍀'];
+  for (let i=0;i<22;i++){
+    const h = document.createElement('div');
+    h.className = 'heart';
+    h.textContent = emo[rnd(emo.length)];
+    h.style.left = rnd(95) + 'vw';
+    h.style.animationDelay = (rnd(1200)/1000) + 's';
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(), 4500);
+  }
+};
+
+render();
+</script>
+</body>
+</html>
